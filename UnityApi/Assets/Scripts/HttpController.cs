@@ -9,9 +9,8 @@ public class HtmlController : MonoBehaviour
 {
     public RawImage[] images;
     public TextMeshProUGUI[] textInfo;
-    public TextMeshProUGUI usernameText;
 
-    private string FakeApiUrl = "https://my-json-server.typicode.com/NoName588/Prueba---Json";
+    private string FakeApiUrl = "https://my-json-server.typicode.com/Kasaco223/ApiCarlos";
     private string RickYMortyApiUrl = "https://rickandmortyapi.com/api";
     private Coroutine sendRequest_GetCharacters;
     private int nextImageIndex = 0;
@@ -23,16 +22,6 @@ public class HtmlController : MonoBehaviour
             sendRequest_GetCharacters = StartCoroutine(GetUserData(userId));
 
     }
-
-    public void ShowUsername(string username)
-    {
-        if (usernameText != null)
-        {
-            usernameText.text = username;
-        }
-    }
-
-
 
     IEnumerator GetUserData(int uid)
     {
@@ -51,9 +40,7 @@ public class HtmlController : MonoBehaviour
                 Debug.Log(user.username);
 
 
-                ShowUsername(user.username);
-                //textInfo[uid].text = user.name;
-
+      
                 int index = 0;
                 foreach (int cardid in user.deck)
                 {
