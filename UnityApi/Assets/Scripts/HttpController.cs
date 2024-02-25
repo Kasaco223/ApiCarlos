@@ -7,8 +7,14 @@ using TMPro;
 
 public class HtmlController : MonoBehaviour
 {
-    public RawImage[] images;
-    public TextMeshProUGUI[] textInfo;
+    [System.Serializable]
+    public class ImageTextPair
+    {
+        public RawImage image;
+        public TextMeshProUGUI text;
+    }
+
+    public ImageTextPair[] imageTextPairs;
 
     private string FakeApiUrl = "https://my-json-server.typicode.com/Kasaco223/ApiCarlos";
     private string RickYMortyApiUrl = "https://rickandmortyapi.com/api";
@@ -20,9 +26,7 @@ public class HtmlController : MonoBehaviour
         nextImageIndex = 0;
         if (sendRequest_GetCharacters == null)
             sendRequest_GetCharacters = StartCoroutine(GetUserData(userId));
-
     }
-
     IEnumerator GetUserData(int uid)
     {
         UnityWebRequest request = UnityWebRequest.Get(FakeApiUrl + "/users/" + uid);
@@ -39,14 +43,21 @@ public class HtmlController : MonoBehaviour
                 UserData user = JsonUtility.FromJson<UserData>(request.downloadHandler.text);
                 Debug.Log(user.username);
 
-
-      
-                int index = 0;
+                List<Coroutine> characterCoroutines = new List<Coroutine>();
                 foreach (int cardid in user.deck)
                 {
-                    StartCoroutine(GetCharacter(cardid, index));
-                    index++;
+                    Coroutine coroutine = StartCoroutine(GetCharacter(cardid));
+                    characterCoroutines.Add(coroutine);
                 }
+
+                // Esperar a que se completen todas las corrutinas de los personajes
+                foreach (var coroutine in characterCoroutines)
+                {
+                    yield return coroutine;
+                }
+
+                // Todas las solicitudes de personajes se han completado
+                Debug.Log("Todas las solicitudes de personajes se han completado");
             }
             else
             {
@@ -57,7 +68,7 @@ public class HtmlController : MonoBehaviour
     }
 
 
-    IEnumerator GetCharacter(int id, int index)
+    IEnumerator GetCharacter(int id)
     {
         UnityWebRequest request = UnityWebRequest.Get(RickYMortyApiUrl + "/character/" + id);
         yield return request.SendWebRequest();
@@ -73,13 +84,15 @@ public class HtmlController : MonoBehaviour
                 Character character = JsonUtility.FromJson<Character>(request.downloadHandler.text);
                 Debug.Log(character.name + " is a " + character.species);
                 Debug.Log(character.image);
-                textInfo[index].text = character.name;
-                if (nextImageIndex < images.Length)
-                {
-                    StartCoroutine(DownloadImage(character.image, nextImageIndex));
 
-                    nextImageIndex++;
-                }
+                int index = nextImageIndex; // Usar el índice correcto
+                nextImageIndex++;
+
+                // Actualizar el texto asociado con la imagen
+                imageTextPairs[index].text.text = character.name;
+
+                // Descargar la imagen
+                yield return StartCoroutine(DownloadImage(character.image, index));
             }
             else
             {
@@ -100,13 +113,13 @@ public class HtmlController : MonoBehaviour
         else
         {
             Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
-            images[index].texture = texture;
-
+            imageTextPairs[index].image.texture = texture;
         }
     }
 }
 
-[System.Serializable]
+
+    [System.Serializable]
 public class UserData
 {
     public int id;
