@@ -7,6 +7,12 @@ using TMPro;
 
 public class HtmlController : MonoBehaviour
 {
+
+
+    public TextMeshProUGUI nombre;
+
+
+    static int next = 0;
     [System.Serializable]
     public class ImageTextPair
     {
@@ -20,10 +26,16 @@ public class HtmlController : MonoBehaviour
     private string RickYMortyApiUrl = "https://rickandmortyapi.com/api";
     private Coroutine sendRequest_GetCharacters;
     private int nextImageIndex = 0;
-
+    public void Next()
+    {
+        next += 1;
+        if (next > 2) { next = 0; }
+    }
     public void SendRequest(int userId)
     {
+        Debug.Log(userId);
         nextImageIndex = 0;
+        userId += next;
         if (sendRequest_GetCharacters == null)
             sendRequest_GetCharacters = StartCoroutine(GetUserData(userId));
     }
@@ -42,7 +54,7 @@ public class HtmlController : MonoBehaviour
             {
                 UserData user = JsonUtility.FromJson<UserData>(request.downloadHandler.text);
                 Debug.Log(user.username);
-
+                nombre.text = (user.username);
                 List<Coroutine> characterCoroutines = new List<Coroutine>();
                 foreach (int cardid in user.deck)
                 {
